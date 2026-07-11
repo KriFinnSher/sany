@@ -10,11 +10,15 @@ import (
 )
 
 type Service struct {
-	repository Repository
+	fileSaver  FileSaver
+	fileGetter FileGetter
 }
 
-func New(repository Repository) *Service {
-	return &Service{repository: repository}
+func New(fileSaver FileSaver, fileGetter FileGetter) *Service {
+	return &Service{
+		fileSaver:  fileSaver,
+		fileGetter: fileGetter,
+	}
 }
 
 func (s *Service) Upload(ctx context.Context, file entity.File) (entity.File, error) {
@@ -28,14 +32,14 @@ func (s *Service) Upload(ctx context.Context, file entity.File) (entity.File, er
 	}
 	file.ID = id
 
-	if err := s.repository.Save(ctx, file); err != nil {
+	if err := s.fileSaver.Save(ctx, file); err != nil {
 		return entity.File{}, fmt.Errorf("save file: %w", err)
 	}
 	return file, nil
 }
 
 func (s *Service) Get(ctx context.Context, id string) (entity.File, error) {
-	file, err := s.repository.Get(ctx, id)
+	file, err := s.fileGetter.Get(ctx, id)
 	if err != nil {
 		return entity.File{}, fmt.Errorf("get file: %w", err)
 	}

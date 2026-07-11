@@ -10,7 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestStorageSaveAndGet(t *testing.T) {
+func TestFileStorerSaveAndGet(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("open database: %v", err)

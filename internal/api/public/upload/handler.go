@@ -14,21 +14,21 @@ import (
 const MaxFileSize int64 = 50 << 20
 
 type Handler struct {
-	log logger.Logger
-	up  Uploader
+	logger       logger.Logger
+	fileUploader FileUploader
 }
 
-func New(log logger.Logger, up Uploader) *Handler {
+func New(log logger.Logger, fileUploader FileUploader) *Handler {
 	return &Handler{
-		log: log.With(logger.OperationField, "upload"),
-		up:  up,
+		logger:       log.With(logger.OperationField, "upload"),
+		fileUploader: fileUploader,
 	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, MaxFileSize+(1<<20))
 	if err := r.ParseMultipartForm(MaxFileSize); err != nil {
-		h.log.Error(r.Context(), "parse multipart form", logger.ErrFiled, err)
+		h.logger.Error(r.Context(), "parse multipart form", logger.ErrFiled, err)
 		var maxErr *http.MaxBytesError
 		if errors.As(err, &maxErr) {
 			http_utils.WriteError(w, http.StatusRequestEntityTooLarge, "file exceeds 50 MiB limit")
@@ -40,7 +40,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		h.log.Error(r.Context(), "get multipart file", logger.ErrFiled, err)
+		h.logger.Error(r.Context(), "get multipart file", logger.ErrFiled, err)
 		http_utils.WriteError(w, http.StatusBadRequest, "bad form key received")
 		return
 	}
@@ -53,7 +53,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(io.LimitReader(file, MaxFileSize+1))
 	if err != nil {
-		h.log.Error(r.Context(), "read uploaded file", logger.ErrFiled, err)
+		h.logger.Error(r.Context(), "read uploaded file", logger.ErrFiled, err)
 		http_utils.WriteError(w, http.StatusInternalServerError, "file processing error")
 		return
 	}
@@ -62,14 +62,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stored, err := h.up.Upload(r.Context(), entity.File{
+	stored, err := h.fileUploader.Upload(r.Context(), entity.File{
 		Name:        filepath.Base(header.Filename),
 		ContentType: http_utils.ContentType(header.Header.Get("Content-Type")),
 		Size:        int64(len(data)),
 		Data:        data,
 	})
 	if err != nil {
-		h.log.Error(r.Context(), "upload file", logger.ErrFiled, err)
+		h.logger.Error(r.Context(), "upload file", logger.ErrFiled, err)
 		http_utils.WriteError(w, http.StatusInternalServerError, "failed to save file")
 		return
 	}

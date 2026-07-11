@@ -17,32 +17,70 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockRepository is a mock of Repository interface.
-type MockRepository struct {
+// MockFileSaver is a mock of FileSaver interface.
+type MockFileSaver struct {
 	ctrl     *gomock.Controller
-	recorder *MockRepositoryMockRecorder
+	recorder *MockFileSaverMockRecorder
 	isgomock struct{}
 }
 
-// MockRepositoryMockRecorder is the mock recorder for MockRepository.
-type MockRepositoryMockRecorder struct {
-	mock *MockRepository
+// MockFileSaverMockRecorder is the mock recorder for MockFileSaver.
+type MockFileSaverMockRecorder struct {
+	mock *MockFileSaver
 }
 
-// NewMockRepository creates a new mock instance.
-func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
-	mock := &MockRepository{ctrl: ctrl}
-	mock.recorder = &MockRepositoryMockRecorder{mock}
+// NewMockFileSaver creates a new mock instance.
+func NewMockFileSaver(ctrl *gomock.Controller) *MockFileSaver {
+	mock := &MockFileSaver{ctrl: ctrl}
+	mock.recorder = &MockFileSaverMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
+func (m *MockFileSaver) EXPECT() *MockFileSaverMockRecorder {
+	return m.recorder
+}
+
+// Save mocks base method.
+func (m *MockFileSaver) Save(arg0 context.Context, arg1 upload.File) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockFileSaverMockRecorder) Save(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockFileSaver)(nil).Save), arg0, arg1)
+}
+
+// MockFileGetter is a mock of FileGetter interface.
+type MockFileGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockFileGetterMockRecorder
+	isgomock struct{}
+}
+
+// MockFileGetterMockRecorder is the mock recorder for MockFileGetter.
+type MockFileGetterMockRecorder struct {
+	mock *MockFileGetter
+}
+
+// NewMockFileGetter creates a new mock instance.
+func NewMockFileGetter(ctrl *gomock.Controller) *MockFileGetter {
+	mock := &MockFileGetter{ctrl: ctrl}
+	mock.recorder = &MockFileGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFileGetter) EXPECT() *MockFileGetterMockRecorder {
 	return m.recorder
 }
 
 // Get mocks base method.
-func (m *MockRepository) Get(ctx context.Context, id string) (upload.File, error) {
+func (m *MockFileGetter) Get(ctx context.Context, id string) (upload.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(upload.File)
@@ -51,21 +89,7 @@ func (m *MockRepository) Get(ctx context.Context, id string) (upload.File, error
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(ctx, id any) *gomock.Call {
+func (mr *MockFileGetterMockRecorder) Get(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx, id)
-}
-
-// Save mocks base method.
-func (m *MockRepository) Save(ctx context.Context, file upload.File) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, file)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Save indicates an expected call of Save.
-func (mr *MockRepositoryMockRecorder) Save(ctx, file any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), ctx, file)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFileGetter)(nil).Get), ctx, id)
 }

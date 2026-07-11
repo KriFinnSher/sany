@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockGetter is a mock of Getter interface.
-type MockGetter struct {
+// MockFileGetter is a mock of FileGetter interface.
+type MockFileGetter struct {
 	ctrl     *gomock.Controller
-	recorder *MockGetterMockRecorder
+	recorder *MockFileGetterMockRecorder
 	isgomock struct{}
 }
 
-// MockGetterMockRecorder is the mock recorder for MockGetter.
-type MockGetterMockRecorder struct {
-	mock *MockGetter
+// MockFileGetterMockRecorder is the mock recorder for MockFileGetter.
+type MockFileGetterMockRecorder struct {
+	mock *MockFileGetter
 }
 
-// NewMockGetter creates a new mock instance.
-func NewMockGetter(ctrl *gomock.Controller) *MockGetter {
-	mock := &MockGetter{ctrl: ctrl}
-	mock.recorder = &MockGetterMockRecorder{mock}
+// NewMockFileGetter creates a new mock instance.
+func NewMockFileGetter(ctrl *gomock.Controller) *MockFileGetter {
+	mock := &MockFileGetter{ctrl: ctrl}
+	mock.recorder = &MockFileGetterMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockGetter) EXPECT() *MockGetterMockRecorder {
+func (m *MockFileGetter) EXPECT() *MockFileGetterMockRecorder {
 	return m.recorder
 }
 
 // Get mocks base method.
-func (m *MockGetter) Get(arg0 context.Context, arg1 string) (upload.File, error) {
+func (m *MockFileGetter) Get(arg0 context.Context, arg1 string) (upload.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(upload.File)
@@ -51,7 +51,7 @@ func (m *MockGetter) Get(arg0 context.Context, arg1 string) (upload.File, error)
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockGetterMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+func (mr *MockFileGetterMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFileGetter)(nil).Get), arg0, arg1)
 }

@@ -17,14 +17,14 @@ func TestHandlerServeHTTP(t *testing.T) {
 	tests := []struct {
 		name string
 		id   string
-		mock func(*mocks.MockGetter)
+		mock func(*mocks.MockFileGetter)
 		code int
 		body string
 	}{
 		{
 			name: "returns stored file",
 			id:   "file-id",
-			mock: func(m *mocks.MockGetter) {
+			mock: func(m *mocks.MockFileGetter) {
 				m.EXPECT().Get(gomock.Any(), "file-id").Return(entity.File{
 					ID:          "file-id",
 					Name:        "hello.txt",
@@ -42,7 +42,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 		{
 			name: "returns not found",
 			id:   "missing",
-			mock: func(m *mocks.MockGetter) {
+			mock: func(m *mocks.MockFileGetter) {
 				m.EXPECT().Get(gomock.Any(), "missing").Return(entity.File{}, entity.ErrNotFound)
 			},
 			code: http.StatusNotFound,
@@ -50,7 +50,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 		{
 			name: "returns internal error for storage failure",
 			id:   "file-id",
-			mock: func(m *mocks.MockGetter) {
+			mock: func(m *mocks.MockFileGetter) {
 				m.EXPECT().Get(gomock.Any(), "file-id").Return(entity.File{}, storeErr)
 			},
 			code: http.StatusInternalServerError,
@@ -60,7 +60,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			mock := mocks.NewMockGetter(ctrl)
+			mock := mocks.NewMockFileGetter(ctrl)
 			if tt.mock != nil {
 				tt.mock(mock)
 			}

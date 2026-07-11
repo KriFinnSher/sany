@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockUploader is a mock of Uploader interface.
-type MockUploader struct {
+// MockFileUploader is a mock of FileUploader interface.
+type MockFileUploader struct {
 	ctrl     *gomock.Controller
-	recorder *MockUploaderMockRecorder
+	recorder *MockFileUploaderMockRecorder
 	isgomock struct{}
 }
 
-// MockUploaderMockRecorder is the mock recorder for MockUploader.
-type MockUploaderMockRecorder struct {
-	mock *MockUploader
+// MockFileUploaderMockRecorder is the mock recorder for MockFileUploader.
+type MockFileUploaderMockRecorder struct {
+	mock *MockFileUploader
 }
 
-// NewMockUploader creates a new mock instance.
-func NewMockUploader(ctrl *gomock.Controller) *MockUploader {
-	mock := &MockUploader{ctrl: ctrl}
-	mock.recorder = &MockUploaderMockRecorder{mock}
+// NewMockFileUploader creates a new mock instance.
+func NewMockFileUploader(ctrl *gomock.Controller) *MockFileUploader {
+	mock := &MockFileUploader{ctrl: ctrl}
+	mock.recorder = &MockFileUploaderMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUploader) EXPECT() *MockUploaderMockRecorder {
+func (m *MockFileUploader) EXPECT() *MockFileUploaderMockRecorder {
 	return m.recorder
 }
 
 // Upload mocks base method.
-func (m *MockUploader) Upload(arg0 context.Context, arg1 upload.File) (upload.File, error) {
+func (m *MockFileUploader) Upload(arg0 context.Context, arg1 upload.File) (upload.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Upload", arg0, arg1)
 	ret0, _ := ret[0].(upload.File)
@@ -51,7 +51,7 @@ func (m *MockUploader) Upload(arg0 context.Context, arg1 upload.File) (upload.Fi
 }
 
 // Upload indicates an expected call of Upload.
-func (mr *MockUploaderMockRecorder) Upload(arg0, arg1 any) *gomock.Call {
+func (mr *MockFileUploaderMockRecorder) Upload(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockUploader)(nil).Upload), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockFileUploader)(nil).Upload), arg0, arg1)
 }

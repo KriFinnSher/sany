@@ -9,19 +9,19 @@ import (
 	entity "github.com/KriFinnSher/sany/internal/entity/upload"
 )
 
-type Storage struct {
+type FileStorer struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) (*Storage, error) {
-	storage := &Storage{db: db}
-	if err := storage.migrate(context.Background()); err != nil {
+func New(db *sql.DB) (*FileStorer, error) {
+	fileStorer := &FileStorer{db: db}
+	if err := fileStorer.migrate(context.Background()); err != nil {
 		return nil, err
 	}
-	return storage, nil
+	return fileStorer, nil
 }
 
-func (s *Storage) Save(ctx context.Context, file entity.File) error {
+func (s *FileStorer) Save(ctx context.Context, file entity.File) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO uploads (id, name, content_type, size, data)
 		VALUES (?, ?, ?, ?, ?)`, file.ID, file.Name, file.ContentType, file.Size, file.Data)
@@ -31,7 +31,7 @@ func (s *Storage) Save(ctx context.Context, file entity.File) error {
 	return nil
 }
 
-func (s *Storage) Get(ctx context.Context, id string) (entity.File, error) {
+func (s *FileStorer) Get(ctx context.Context, id string) (entity.File, error) {
 	var file entity.File
 	err := s.db.QueryRowContext(ctx, `
 		SELECT id, name, content_type, size, data
@@ -46,7 +46,7 @@ func (s *Storage) Get(ctx context.Context, id string) (entity.File, error) {
 	return file, nil
 }
 
-func (s *Storage) migrate(ctx context.Context) error {
+func (s *FileStorer) migrate(ctx context.Context) error {
 	_, err := s.db.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS uploads (
 			id TEXT PRIMARY KEY,

@@ -6,7 +6,10 @@ import (
 	entity "github.com/KriFinnSher/sany/internal/entity/upload"
 )
 
-type Repository interface {
-	Save(ctx context.Context, file entity.File) error
+type FileSaver interface {
+	Save(context.Context, entity.File) error
+}
+
+type FileGetter interface {
 	Get(ctx context.Context, id string) (entity.File, error)
 }

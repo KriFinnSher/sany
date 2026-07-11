@@ -6,6 +6,6 @@ import (
 	entity "github.com/KriFinnSher/sany/internal/entity/upload"
 )
 
-type Getter interface {
+type FileGetter interface {
 	Get(context.Context, string) (entity.File, error)
 }

@@ -11,14 +11,14 @@ import (
 )
 
 type Handler struct {
-	log logger.Logger
-	get Getter
+	logger     logger.Logger
+	fileGetter FileGetter
 }
 
-func New(log logger.Logger, get Getter) *Handler {
+func New(log logger.Logger, fileGetter FileGetter) *Handler {
 	return &Handler{
-		log: log.With(logger.OperationField, "download"),
-		get: get,
+		logger:     log.With(logger.OperationField, "download"),
+		fileGetter: fileGetter,
 	}
 }
 
@@ -29,13 +29,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := h.get.Get(r.Context(), id)
+	file, err := h.fileGetter.Get(r.Context(), id)
 	if errors.Is(err, entity.ErrNotFound) {
 		http_utils.WriteError(w, http.StatusNotFound, "file not found")
 		return
 	}
 	if err != nil {
-		h.log.Error(r.Context(), "get file", logger.ErrFiled, err)
+		h.logger.Error(r.Context(), "get file", logger.ErrFiled, err)
 		http_utils.WriteError(w, http.StatusInternalServerError, "failed to get file")
 		return
 	}
@@ -45,6 +45,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%q", file.Name))
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(file.Data); err != nil {
-		h.log.Error(r.Context(), "write file", logger.ErrFiled, err)
+		h.logger.Error(r.Context(), "write file", logger.ErrFiled, err)
 	}
 }

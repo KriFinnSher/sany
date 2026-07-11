@@ -24,15 +24,15 @@ func main() {
 
 	logger.Info(ctx, "server started", "host", cfg.ServerHost, "port", cfg.ServerPort)
 
-	storage, err := sqlite.New(db)
+	fileStorer, err := sqlite.New(db)
 	if err != nil {
 		logger.Error(ctx, "failed to initialize storage", "err", err)
 		return
 	}
-	uploader := uploader.New(storage)
+	fileService := uploader.New(fileStorer, fileStorer)
 
-	mux.Handle("POST /api/v1/files", upload.New(logger, uploader))
-	mux.Handle("GET /api/v1/files", download.New(logger, uploader))
+	mux.Handle("POST /api/v1/files", upload.New(logger, fileService))
+	mux.Handle("GET /api/v1/files", download.New(logger, fileService))
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", cfg.ServerHost, cfg.ServerPort),
