@@ -4,9 +4,10 @@ Sany is a small file-sharing service. It accepts a multipart file, stores its me
 
 ## Run
 
-Set `SERVER_HOST`, `SERVER_PORT`, and `DATASOURCE_PATH` in `.env`, then start the server:
+Create `.env` from the example and start the server:
 
 ```sh
+make env
 make run
 ```
 
@@ -14,4 +15,4 @@ Upload with `POST /api/v1/files` using the multipart field `file`. Download with
 
 ## Commands
 
-Run `make help` to see available commands. Use `make api` for the end-to-end API checks after starting the server. The current system design is in [design/system/v1.1.png](design/system/v1.1.png).
+Run `make help` to see available commands. Use `make api` for the end-to-end API checks after starting the server. The API contract is in [schema.yaml](schema.yaml), and the current system design is in [design/system/v1.1.png](design/system/v1.1.png).

@@ -1,0 +1,103 @@
+openapi: 3.0.3
+info:
+  title: Sany API
+  version: 1.0.0
+  description: Upload files and retrieve them through public links.
+servers:
+  - url: http://localhost:4040
+paths:
+  /api/v1/files:
+    post:
+      summary: Upload a file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: A file of at most 50 MiB.
+      responses:
+        '201':
+          description: File stored successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: The uploaded file exceeds the 50 MiB limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      summary: Download a file
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: File ID returned by the upload endpoint.
+      responses:
+        '200':
+          description: Stored file content.
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: Original filename.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No file exists with the supplied ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  schemas:
+    LinkResponse:
+      type: object
+      required:
+        - link
+      properties:
+        link:
+          type: string
+          example: /api/v1/files?id=0123456789abcdef0123456789abcdef
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+  responses:
+    BadRequest:
+      description: Request data is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: The server could not process the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

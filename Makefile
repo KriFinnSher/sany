@@ -1,4 +1,4 @@
-.PHONY: api build fmt help lint mocks run test
+.PHONY: api build env fmt help lint mocks run test
 
 help: ## Show available commands.
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z0-9_-]+:.*##/ {printf "%-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -8,6 +8,9 @@ api: ## Run API checks against a running server.
 
 build: ## Build all packages.
 	go build ./...
+
+env: ## Create .env from .env-example when it is missing.
+	@test -f .env || cp .env-example .env
 
 fmt: ## Format Go source files.
 	gofmt -w $$(find . -name '*.go' -not -path './vendor/*')
