@@ -4,27 +4,28 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/KriFinnSher/sany/internal/config"
+	"github.com/KriFinnSher/sany/internal/config/database"
 	"github.com/KriFinnSher/sany/internal/logger"
+	"github.com/KriFinnSher/sany/internal/storage/sqlite"
 )
 
 func main() {
 	mux := http.NewServeMux()
 	cfg := config.MustLoad()
+	db := database.MustLoadSQLite(cfg)
 
 	ctx := context.Background()
 	logger := logger.New()
 
 	logger.Info(ctx, "server started", "host", cfg.ServerHost, "port", cfg.ServerPort)
 
+	_ = sqlite.New(db)
+
 	server := &http.Server{
-		Addr:           fmt.Sprintf("%s:%s", cfg.ServerHost, cfg.ServerPort),
-		Handler:        mux,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+		Addr:    fmt.Sprintf("%s:%s", cfg.ServerHost, cfg.ServerPort),
+		Handler: mux,
 	}
 
 	err := server.ListenAndServe()
