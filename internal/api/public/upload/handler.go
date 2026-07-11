@@ -1,78 +1,82 @@
 package upload
 
 import (
-	"bytes"
+	"errors"
 	"io"
 	"net/http"
-	"os"
+	"path/filepath"
 
-	"github.com/KriFinnSher/sany/internal/api"
+	"github.com/KriFinnSher/sany/internal/api/http_utils"
+	entity "github.com/KriFinnSher/sany/internal/entity/upload"
 	"github.com/KriFinnSher/sany/internal/logger"
 )
 
-const maxFileSize = 50 << 20
+const MaxFileSize int64 = 50 << 20
 
 type Handler struct {
 	log logger.Logger
-	// uploader uploader
+	up  Uploader
 }
 
-func New(path string, log logger.Logger) *Handler {
+func New(log logger.Logger, up Uploader) *Handler {
 	return &Handler{
-		log: log.With(logger.OperationField, path),
-		// uploader: uploader,
+		log: log.With(logger.OperationField, "upload"),
+		up:  up,
 	}
 }
 
-func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	h.log.Debug(ctx, "http call")
-
-	if !h.methodPass(r) {
-		h.log.Error(ctx, "disallowed method was applied")
-	}
-
-	err := r.ParseMultipartForm(maxFileSize)
-	if err != nil {
-		h.log.Error(ctx, "failed to parse multipart form", logger.ErrFiled, err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(api.NewMessage("bad file received"))
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, MaxFileSize+(1<<20))
+	if err := r.ParseMultipartForm(MaxFileSize); err != nil {
+		h.log.Error(r.Context(), "parse multipart form", logger.ErrFiled, err)
+		var maxErr *http.MaxBytesError
+		if errors.As(err, &maxErr) {
+			http_utils.WriteError(w, http.StatusRequestEntityTooLarge, "file exceeds 50 MiB limit")
+			return
+		}
+		http_utils.WriteError(w, http.StatusBadRequest, "bad file received")
 		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		h.log.Error(ctx, "failed to get file from form", logger.ErrFiled, err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(api.NewMessage("bad form key received"))
+		h.log.Error(r.Context(), "get multipart file", logger.ErrFiled, err)
+		http_utils.WriteError(w, http.StatusBadRequest, "bad form key received")
+		return
+	}
+	defer file.Close()
+
+	if header.Size > MaxFileSize {
+		http_utils.WriteError(w, http.StatusRequestEntityTooLarge, "file exceeds 50 MiB limit")
 		return
 	}
 
-	var buf bytes.Buffer
-
-	n, err := io.Copy(&buf, file)
+	data, err := io.ReadAll(io.LimitReader(file, MaxFileSize+1))
 	if err != nil {
-		h.log.Error(ctx, "failed to copy file", logger.ErrFiled, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(api.NewMessage("file processing error (copy)"))
+		h.log.Error(r.Context(), "read uploaded file", logger.ErrFiled, err)
+		http_utils.WriteError(w, http.StatusInternalServerError, "file processing error")
+		return
+	}
+	if int64(len(data)) > MaxFileSize {
+		http_utils.WriteError(w, http.StatusRequestEntityTooLarge, "file exceeds 50 MiB limit")
 		return
 	}
 
-	h.log.Debug(ctx, "file was copied from buffer", "bytes", n)
-
-	err = os.WriteFile(header.Filename, buf.Bytes(), 0755)
+	stored, err := h.up.Upload(r.Context(), entity.File{
+		Name:        filepath.Base(header.Filename),
+		ContentType: http_utils.ContentType(header.Header.Get("Content-Type")),
+		Size:        int64(len(data)),
+		Data:        data,
+	})
 	if err != nil {
-		h.log.Error(ctx, "failed to create file", logger.ErrFiled, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(api.NewMessage("file processing error (create)"))
+		h.log.Error(r.Context(), "upload file", logger.ErrFiled, err)
+		http_utils.WriteError(w, http.StatusInternalServerError, "failed to save file")
 		return
 	}
 
-	h.log.Debug(ctx, "file was created")
-
-	w.Write(api.NewMessage("file created successfully"))
+	http_utils.WriteJSON(w, http.StatusCreated, response{Link: "/api/v1/files?id=" + stored.ID})
 }
 
-func (h *Handler) methodPass(r *http.Request) bool {
-	return r.Method == http.MethodPost
+type response struct {
+	Link string `json:"link"`
 }

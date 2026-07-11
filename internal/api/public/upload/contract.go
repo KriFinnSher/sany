@@ -2,9 +2,10 @@ package upload
 
 import (
 	"context"
-	"os"
+
+	entity "github.com/KriFinnSher/sany/internal/entity/upload"
 )
 
-type uploader interface {
-	Upload(ctx context.Context, file os.File) (link string, err error)
+type Uploader interface {
+	Upload(context.Context, entity.File) (entity.File, error)
 }
