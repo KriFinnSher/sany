@@ -3,17 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/KriFinnSher/sany/internal/config"
+	"github.com/KriFinnSher/sany/internal/logger"
 )
 
 func main() {
 	mux := http.NewServeMux()
 	cfg := config.MustLoad()
+
+	ctx := context.Background()
+	logger := logger.New()
+
+	logger.Info(ctx, "server started", "host", cfg.ServerHost, "port", cfg.ServerPort)
 
 	server := &http.Server{
 		Addr:           fmt.Sprintf("%s:%s", cfg.ServerHost, cfg.ServerPort),
@@ -23,13 +27,8 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	ctx := context.Background()
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-	log.InfoContext(ctx, "server started", "host", cfg.ServerHost, "port", cfg.ServerPort)
-
 	err := server.ListenAndServe()
 	if err != nil {
-		log.ErrorContext(ctx, "server stopped", "host", cfg.ServerHost, "port", cfg.ServerPort)
+		logger.Error(ctx, "server stopped", "err", err, "host", cfg.ServerHost, "port", cfg.ServerPort)
 	}
 }
