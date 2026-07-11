@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/KriFinnSher/sany/internal/api/public/upload"
 	"github.com/KriFinnSher/sany/internal/config"
 	"github.com/KriFinnSher/sany/internal/config/database"
 	"github.com/KriFinnSher/sany/internal/logger"
@@ -20,6 +21,8 @@ func main() {
 	logger := logger.New()
 
 	logger.Info(ctx, "server started", "host", cfg.ServerHost, "port", cfg.ServerPort)
+
+	mux.HandleFunc("/api/v1/upload", upload.New("/api/v1/upload", logger).Handle)
 
 	_ = sqlite.New(db)
 
