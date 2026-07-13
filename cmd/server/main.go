@@ -14,6 +14,7 @@ import (
 	"github.com/KriFinnSher/sany/internal/storage/sqlite"
 )
 
+// main loads configuration, initializes storage, wires handlers, and serves HTTP requests.
 func main() {
 	mux := http.NewServeMux()
 	cfg := config.MustLoad()

@@ -7,6 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// MustLoadSQLite opens a SQLite database using the configured data source.
 func MustLoadSQLite(cfg *config.Config) *sql.DB {
 	db, err := sql.Open("sqlite3", cfg.DataSourcePath)
 	if err != nil {

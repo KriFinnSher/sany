@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// MultipartRequest builds a multipart request with one optional file field.
 func MultipartRequest(t testing.TB, method, path, key, name string, data []byte) *http.Request {
 	t.Helper()
 	var body bytes.Buffer

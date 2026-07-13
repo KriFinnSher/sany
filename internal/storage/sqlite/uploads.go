@@ -13,6 +13,7 @@ type FileStorer struct {
 	db *sql.DB
 }
 
+// New returns a file storer after creating its required table.
 func New(db *sql.DB) (*FileStorer, error) {
 	fileStorer := &FileStorer{db: db}
 	if err := fileStorer.migrate(context.Background()); err != nil {
@@ -21,6 +22,7 @@ func New(db *sql.DB) (*FileStorer, error) {
 	return fileStorer, nil
 }
 
+// Save persists file metadata and contents.
 func (s *FileStorer) Save(ctx context.Context, file entity.File) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO uploads (id, name, content_type, size, data)
@@ -31,6 +33,7 @@ func (s *FileStorer) Save(ctx context.Context, file entity.File) error {
 	return nil
 }
 
+// Get returns a stored file or entity.ErrNotFound.
 func (s *FileStorer) Get(ctx context.Context, id string) (entity.File, error) {
 	var file entity.File
 	err := s.db.QueryRowContext(ctx, `
@@ -46,6 +49,7 @@ func (s *FileStorer) Get(ctx context.Context, id string) (entity.File, error) {
 	return file, nil
 }
 
+// migrate creates the upload table when it does not yet exist.
 func (s *FileStorer) migrate(ctx context.Context) error {
 	_, err := s.db.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS uploads (

@@ -16,6 +16,7 @@ type Handler struct {
 	fileGetter FileGetter
 }
 
+// New returns a handler for downloading stored files.
 func New(log logger.Logger, fileGetter FileGetter) *Handler {
 	return &Handler{
 		logger:     log.With(logger.OperationField, "download"),
@@ -23,6 +24,7 @@ func New(log logger.Logger, fileGetter FileGetter) *Handler {
 	}
 }
 
+// ServeHTTP validates the file ID, retrieves the file, and writes its metadata and contents.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
@@ -43,6 +45,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", http_utils.ContentType(file.ContentType))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(file.Data)))
+	// FormatMediaType uses filename*=UTF-8 for Unicode names; raw Unicode header values are not portable.
 	w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{
 		"filename": file.Name,
 	}))

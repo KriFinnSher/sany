@@ -16,6 +16,7 @@ func init() {
 	godotenv.Load()
 }
 
+// MustLoad reads required environment configuration or panics when it is incomplete.
 func MustLoad() *Config {
 	sHost := os.Getenv("SERVER_HOST")
 	sPort := os.Getenv("SERVER_PORT")

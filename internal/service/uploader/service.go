@@ -14,6 +14,7 @@ type Service struct {
 	fileGetter FileGetter
 }
 
+// New returns a service that stores and retrieves uploaded files.
 func New(fileSaver FileSaver, fileGetter FileGetter) *Service {
 	return &Service{
 		fileSaver:  fileSaver,
@@ -21,7 +22,9 @@ func New(fileSaver FileSaver, fileGetter FileGetter) *Service {
 	}
 }
 
+// Upload normalizes file metadata, assigns an ID, and saves the file.
 func (s *Service) Upload(ctx context.Context, file entity.File) (entity.File, error) {
+	// Data is authoritative because it is persisted with the supplied metadata.
 	if file.Size != int64(len(file.Data)) {
 		file.Size = int64(len(file.Data))
 	}
@@ -38,6 +41,7 @@ func (s *Service) Upload(ctx context.Context, file entity.File) (entity.File, er
 	return file, nil
 }
 
+// Get retrieves a stored file by ID.
 func (s *Service) Get(ctx context.Context, id string) (entity.File, error) {
 	file, err := s.fileGetter.Get(ctx, id)
 	if err != nil {
@@ -46,6 +50,7 @@ func (s *Service) Get(ctx context.Context, id string) (entity.File, error) {
 	return file, nil
 }
 
+// newID creates an opaque 128-bit identifier for a stored file.
 func newID() (string, error) {
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {
