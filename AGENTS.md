@@ -18,6 +18,8 @@ make api     # run curl-based checks against the running server
 
 Use `make stop` or `make restart` to manage the configured port. Before submitting, run `make fmt`, `make test`, `make lint`, and `make build`. Run `make mocks` after changing a contract; do not edit generated files.
 
+Codex runs `.codex/hooks/verify_go.py` when a turn changes Go files. It runs `make lint` and `make test`; fix any reported failure before ending the task. The hook requires `python3`.
+
 ## Coding Style & Naming Conventions
 
 Use idiomatic Go and tabs; `make fmt` runs `gofmt`, and `make lint` runs `go vet`. Keep names conventional and clear. Injected dependencies use no more than two words and end in `-er`, for example `FileGetter`, `FileSaver`, or `FileUploader`; use the same name for the interface, struct field, and related code.
