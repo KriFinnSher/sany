@@ -15,14 +15,15 @@ import (
 func TestHandlerServeHTTP(t *testing.T) {
 	storeErr := errors.New("storage unavailable")
 	tests := []struct {
-		name string
-		id   string
-		mock func(*mocks.MockFileGetter)
-		code int
-		body string
+		name        string
+		id          string
+		mock        func(*mocks.MockFileGetter)
+		code        int
+		body        string
+		disposition string
 	}{
 		{
-			name: "returns stored file",
+			name: "returns stored ASCII file",
 			id:   "file-id",
 			mock: func(m *mocks.MockFileGetter) {
 				m.EXPECT().Get(gomock.Any(), "file-id").Return(entity.File{
@@ -32,8 +33,24 @@ func TestHandlerServeHTTP(t *testing.T) {
 					Data:        []byte("hello"),
 				}, nil)
 			},
-			code: http.StatusOK,
-			body: "hello",
+			code:        http.StatusOK,
+			body:        "hello",
+			disposition: "inline; filename=hello.txt",
+		},
+		{
+			name: "returns stored Unicode file name",
+			id:   "unicode-id",
+			mock: func(m *mocks.MockFileGetter) {
+				m.EXPECT().Get(gomock.Any(), "unicode-id").Return(entity.File{
+					ID:          "unicode-id",
+					Name:        "отзыв.docx",
+					ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+					Data:        []byte("file data"),
+				}, nil)
+			},
+			code:        http.StatusOK,
+			body:        "file data",
+			disposition: "inline; filename*=utf-8''%D0%BE%D1%82%D0%B7%D1%8B%D0%B2.docx",
 		},
 		{
 			name: "rejects missing file id",
@@ -74,6 +91,9 @@ func TestHandlerServeHTTP(t *testing.T) {
 			}
 			if tt.body != "" && w.Body.String() != tt.body {
 				t.Errorf("body = %q, want %q", w.Body.String(), tt.body)
+			}
+			if tt.disposition != "" && w.Header().Get("Content-Disposition") != tt.disposition {
+				t.Errorf("Content-Disposition = %q, want %q", w.Header().Get("Content-Disposition"), tt.disposition)
 			}
 		})
 	}

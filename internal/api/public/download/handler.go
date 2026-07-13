@@ -3,6 +3,7 @@ package download
 import (
 	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 
 	"github.com/KriFinnSher/sany/internal/api/http_utils"
@@ -42,7 +43,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", http_utils.ContentType(file.ContentType))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(file.Data)))
-	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%q", file.Name))
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{
+		"filename": file.Name,
+	}))
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(file.Data); err != nil {
 		h.logger.Error(r.Context(), "write file", logger.ErrFiled, err)

@@ -9,6 +9,8 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 sample="$tmp_dir/sample.txt"
 downloaded="$tmp_dir/downloaded.txt"
+headers="$tmp_dir/download.headers"
+file_name='отзыв.docx'
 printf 'hello from api test\n' > "$sample"
 
 assert_status() {
@@ -22,7 +24,7 @@ assert_status() {
 }
 
 response="$tmp_dir/upload.json"
-status="$(curl -sS -o "$response" -w '%{http_code}' -F "file=@$sample;type=text/plain" "$BASE_URL/api/v1/files")"
+status="$(curl -sS -o "$response" -w '%{http_code}' -F "file=@$sample;filename=$file_name;type=text/plain" "$BASE_URL/api/v1/files")"
 assert_status "$status" 201 "upload"
 
 link="$(sed -n 's/.*"link":"\([^"]*\)".*/\1/p' "$response")"
@@ -31,9 +33,13 @@ if [ -z "$link" ]; then
 	exit 1
 fi
 
-status="$(curl -sS -o "$downloaded" -w '%{http_code}' "$BASE_URL$link")"
+status="$(curl -sS -D "$headers" -o "$downloaded" -w '%{http_code}' "$BASE_URL$link")"
 assert_status "$status" 200 "download"
 cmp -s "$sample" "$downloaded" || { echo 'download: content differs' >&2; exit 1; }
+tr -d '\r' < "$headers" | grep -Fq "Content-Disposition: inline; filename*=utf-8''%D0%BE%D1%82%D0%B7%D1%8B%D0%B2.docx" || {
+	echo 'download: Unicode filename is not RFC 5987 encoded' >&2
+	exit 1
+}
 
 status="$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/api/v1/files")"
 assert_status "$status" 405 "method validation"
