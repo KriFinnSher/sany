@@ -17,10 +17,21 @@ type Wrapper struct {
 
 // New returns a JSON logger that writes debug-level logs to standard output.
 func New() *Wrapper {
-	l := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	l := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level:       slog.LevelDebug,
+		ReplaceAttr: replaceTimeFormat,
+	}))
 	return &Wrapper{
 		logger: l,
 	}
+}
+
+// replaceTimeFormat shortens log timestamps while keeping their date and minute.
+func replaceTimeFormat(_ []string, attr slog.Attr) slog.Attr {
+	if attr.Key == slog.TimeKey {
+		attr.Value = slog.StringValue(attr.Value.Time().Format("2006-01-02|15:04"))
+	}
+	return attr
 }
 
 // With returns a logger with the given attribute attached.

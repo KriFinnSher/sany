@@ -26,19 +26,24 @@ func New(log logger.Logger, fileGetter FileGetter) *Handler {
 
 // ServeHTTP validates the file ID, retrieves the file, and writes its metadata and contents.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	id := r.URL.Query().Get("id")
 	if id == "" {
+		h.logger.Info(ctx, "download rejected", "reason", "missing file id")
 		http_utils.WriteError(w, http.StatusBadRequest, "file id is required")
 		return
 	}
 
-	file, err := h.fileGetter.Get(r.Context(), id)
+	h.logger.Info(ctx, "download requested", "file_id", id)
+	file, err := h.fileGetter.Get(ctx, id)
 	if errors.Is(err, entity.ErrNotFound) {
+		h.logger.Info(ctx, "file download not found", "file_id", id)
 		http_utils.WriteError(w, http.StatusNotFound, "file not found")
 		return
 	}
 	if err != nil {
-		h.logger.Error(r.Context(), "get file", logger.ErrFiled, err)
+		h.logger.Error(ctx, "get file", logger.ErrFiled, err)
 		http_utils.WriteError(w, http.StatusInternalServerError, "failed to get file")
 		return
 	}
@@ -51,6 +56,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}))
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(file.Data); err != nil {
-		h.logger.Error(r.Context(), "write file", logger.ErrFiled, err)
+		h.logger.Error(ctx, "write file", logger.ErrFiled, err)
+		return
 	}
+
+	h.logger.Info(ctx, "file downloaded", "file_id", file.ID, "file_name", file.Name, "content_type", file.ContentType, "size", file.Size)
 }
